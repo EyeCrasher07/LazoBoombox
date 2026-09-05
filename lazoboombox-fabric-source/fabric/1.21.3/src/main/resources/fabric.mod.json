@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1, "id": "lazoboombox", "version": "${version}", "name": "LazoBoombox",
+  "description": "Portable + placeable Boombox addon for LazoDiscs.",
+  "authors": ["EyeCrasher"], "license": "GPL-3.0-only", "icon": "assets/lazoboombox/icon.png",
+  "environment": "*",
+  "entrypoints": { "main": ["com.eyecrasher.lazoboombox.LazoBoombox"], "client": ["com.eyecrasher.lazoboombox.LazoBoomboxClient"] },
+  "mixins": ["lazoboombox.mixins.json"],
+  "accessWidener": "lazoboombox.accesswidener.json",
+    "depends": { "fabricloader": ">=0.16.0", "fabric": "*", "minecraft": "1.21.3", "java": ">=21", "plasmovoice": ">=2.1.8", "lazodiscs": ">=1.0.3" }
+}

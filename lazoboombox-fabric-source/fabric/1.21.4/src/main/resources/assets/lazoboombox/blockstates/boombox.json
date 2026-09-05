@@ -1,0 +1,1 @@
+{ "variants": { "facing=north": { "model": "lazoboombox:block/boombox" }, "facing=south": { "model": "lazoboombox:block/boombox", "y": 180 }, "facing=east": { "model": "lazoboombox:block/boombox", "y": 90 }, "facing=west": { "model": "lazoboombox:block/boombox", "y": 270 } } }

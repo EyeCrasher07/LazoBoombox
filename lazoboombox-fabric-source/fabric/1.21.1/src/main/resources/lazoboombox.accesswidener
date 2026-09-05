@@ -1,0 +1,8 @@
+accessWidener v2 named
+
+# BlockEntityType.register(String, BlockEntitySupplier, Block...) is package-private in 1.21.11.
+# We need it public so LazoBoombox can register its BoomboxBlockEntity.
+accessible method net/minecraft/world/level/block/entity/BlockEntityType register (Ljava/lang/String;Lnet/minecraft/world/level/block/entity/BlockEntityType$BlockEntitySupplier;[Lnet/minecraft/world/level/block/Block;)Lnet/minecraft/world/level/block/entity/BlockEntityType;
+
+# BlockEntityType$BlockEntitySupplier is package-private too.
+accessible class net/minecraft/world/level/block/entity/BlockEntityType$BlockEntitySupplier

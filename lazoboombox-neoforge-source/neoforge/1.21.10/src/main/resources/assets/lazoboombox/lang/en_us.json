@@ -1,0 +1,12 @@
+{
+  "item.lazoboombox.boombox": "Boombox",
+  "block.lazoboombox.boombox": "Boombox",
+  "lazoboombox.tooltip.contains_disc": "Contains: %s",
+  "lazoboombox.tooltip.empty": "Empty",
+  "lazoboombox.tooltip.owner": "Owner: %s",
+  "lazoboombox.message.picked_up": "Picked up Boombox.",
+  "lazoboombox.message.not_owner": "You do not own this Boombox.",
+  "lazoboombox.message.too_many_sources": "Too many active Boomboxes.",
+  "lazoboombox.message.playback_failed": "Could not play disc: %s",
+  "lazoboombox.message.now_playing": "Now playing: %s"
+}
