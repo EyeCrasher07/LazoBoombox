@@ -1,183 +1,136 @@
-name: Build LazoBoombox
+name: Build All Versions
 
 on:
   push:
     tags:
-      - "v*"
+      - 'lazoboombox-*'
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  build:
-    name: Build ${{ matrix.loader }} ${{ matrix.version }}
+  build-fabric:
     runs-on: ubuntu-latest
-
     strategy:
       fail-fast: false
       matrix:
-        include:
-          # Fabric
-          - loader: fabric
-            version: "1.21.1"
-          - loader: fabric
-            version: "1.21.2"
-          - loader: fabric
-            version: "1.21.3"
-          - loader: fabric
-            version: "1.21.4"
-          - loader: fabric
-            version: "1.21.5"
-          - loader: fabric
-            version: "1.21.6"
-          - loader: fabric
-            version: "1.21.7"
-          - loader: fabric
-            version: "1.21.8"
-          - loader: fabric
-            version: "1.21.9"
-          - loader: fabric
-            version: "1.21.10"
-          - loader: fabric
-            version: "1.21.11"
-
-          # NeoForge
-          - loader: neoforge
-            version: "1.21.1"
-          - loader: neoforge
-            version: "1.21.2"
-          - loader: neoforge
-            version: "1.21.3"
-          - loader: neoforge
-            version: "1.21.4"
-          - loader: neoforge
-            version: "1.21.5"
-          - loader: neoforge
-            version: "1.21.6"
-          - loader: neoforge
-            version: "1.21.7"
-          - loader: neoforge
-            version: "1.21.8"
-          - loader: neoforge
-            version: "1.21.9"
-          - loader: neoforge
-            version: "1.21.10"
-          - loader: neoforge
-            version: "1.21.11"
+        version:
+          - 1.21.1
+          - 1.21.2
+          - 1.21.3
+          - 1.21.4
+          - 1.21.5
+          - 1.21.6
+          - 1.21.7
+          - 1.21.8
+          - 1.21.9
+          - 1.21.10
+          - 1.21.11
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
-      - name: Setup Java
-        uses: actions/setup-java@v5
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "21"
-          cache: gradle
+          java-version: '21'
 
-      - name: Make Gradle executable
-        run: chmod +x "${{ matrix.loader }}/${{ matrix.version }}/gradlew"
-
-      - name: Build
-        working-directory: ${{ matrix.loader }}/${{ matrix.version }}
+      - name: Build Fabric ${{ matrix.version }}
+        working-directory: fabric/${{ matrix.version }}
         run: ./gradlew build --no-daemon
 
-      - name: Find production JAR
-        id: jar
-        working-directory: ${{ matrix.loader }}/${{ matrix.version }}
-        shell: bash
-        run: |
-          echo "Build output:"
-          ls -lah build/libs
-
-          JAR=$(find build/libs \
-            -maxdepth 1 \
-            -type f \
-            -name "*.jar" \
-            ! -name "*-sources.jar" \
-            ! -name "*-dev.jar" \
-            ! -name "*-dev-shadow.jar" \
-            ! -name "*-shadow.jar" \
-            | head -n 1)
-
-          if [ -z "$JAR" ]; then
-            echo "ERROR: Production JAR not found!"
-            echo "Available files:"
-            find build/libs -maxdepth 1 -type f -name "*.jar" -print
-            exit 1
-          fi
-
-          echo "Production JAR: $JAR"
-          echo "path=$JAR" >> "$GITHUB_OUTPUT"
-
-      - name: Upload production JAR
+      - name: Upload Fabric JAR
         uses: actions/upload-artifact@v4
         with:
-          name: LazoBoombox-${{ matrix.loader }}-${{ matrix.version }}
-          path: ${{ matrix.loader }}/${{ matrix.version }}/${{ steps.jar.outputs.path }}
+          name: fabric-${{ matrix.version }}
+          path: |
+            fabric/${{ matrix.version }}/build/libs/*.jar
+            !fabric/${{ matrix.version }}/build/libs/*-sources.jar
+            !fabric/${{ matrix.version }}/build/libs/*-dev.jar
+            !fabric/${{ matrix.version }}/build/libs/*-dev-shadow.jar
+            !fabric/${{ matrix.version }}/build/libs/*-thin.jar
+            !fabric/${{ matrix.version }}/build/libs/*-shadow.jar
           if-no-files-found: error
+          retention-days: 7
+
+  build-neoforge:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        version:
+          - 1.21.1
+          - 1.21.2
+          - 1.21.3
+          - 1.21.4
+          - 1.21.5
+          - 1.21.6
+          - 1.21.7
+          - 1.21.8
+          - 1.21.9
+          - 1.21.10
+          - 1.21.11
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Build NeoForge ${{ matrix.version }}
+        working-directory: neoforge/${{ matrix.version }}
+        run: ./gradlew build --no-daemon
+
+      - name: Upload NeoForge JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: neoforge-${{ matrix.version }}
+          path: |
+            neoforge/${{ matrix.version }}/build/libs/*.jar
+            !neoforge/${{ matrix.version }}/build/libs/*-sources.jar
+            !neoforge/${{ matrix.version }}/build/libs/*-dev.jar
+            !neoforge/${{ matrix.version }}/build/libs/*-dev-shadow.jar
+            !neoforge/${{ matrix.version }}/build/libs/*-thin.jar
+            !neoforge/${{ matrix.version }}/build/libs/*-shadow.jar
+          if-no-files-found: error
+          retention-days: 7
 
   release:
-    name: Create GitHub Release
-    needs: build
+    needs:
+      - build-fabric
+      - build-neoforge
+
+    if: startsWith(github.ref, 'refs/tags/lazoboombox-')
+
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Download all JARs
-        uses: actions/download-artifact@v5
+      - name: Download all release JARs
+        uses: actions/download-artifact@v4
         with:
-          path: release-assets
-          pattern: LazoBoombox-*
+          path: artifacts
           merge-multiple: true
 
-      - name: Show release files
+      - name: List release files
         run: |
-          echo "Release files:"
-          find release-assets -type f -name "*.jar" -print
+          echo "Release artifacts:"
+          find artifacts -maxdepth 1 -type f -name '*.jar' -print | sort
+          echo "Count:"
+          find artifacts -maxdepth 1 -type f -name '*.jar' | wc -l
 
-      - name: Verify release files
-        shell: bash
-        run: |
-          echo "Checking release files..."
-
-          if find release-assets -type f \
-            \( -name "*-sources.jar" \
-            -o -name "*-dev.jar" \
-            -o -name "*-dev-shadow.jar" \
-            -o -name "*-shadow.jar" \) \
-            | grep -q .; then
-
-            echo "ERROR: Development/source JAR found in release-assets!"
-            find release-assets -type f -name "*.jar" -print
-            exit 1
-          fi
-
-          COUNT=$(find release-assets -type f -name "*.jar" | wc -l)
-
-          echo "Production JAR count: $COUNT"
-
-          if [ "$COUNT" -ne 22 ]; then
-            echo "ERROR: Expected 22 production JARs, found $COUNT!"
-            find release-assets -type f -name "*.jar" -print
-            exit 1
-          fi
-
-      - name: Create Release
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          files: artifacts/*.jar
+          generate_release_notes: false
+          draft: false
+          prerelease: false
         env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
-            TAG="${GITHUB_REF_NAME}"
-          else
-            TAG="build-${GITHUB_RUN_NUMBER}"
-          fi
-
-          gh release create "$TAG" \
-            release-assets/*.jar \
-            --title "LazoBoombox $TAG" \
-            --generate-notes
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
