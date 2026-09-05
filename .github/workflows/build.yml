@@ -13,10 +13,12 @@ jobs:
   build:
     name: Build ${{ matrix.loader }} ${{ matrix.version }}
     runs-on: ubuntu-latest
+
     strategy:
       fail-fast: false
       matrix:
         include:
+          # Fabric
           - loader: fabric
             version: "1.21.1"
           - loader: fabric
@@ -39,6 +41,8 @@ jobs:
             version: "1.21.10"
           - loader: fabric
             version: "1.21.11"
+
+          # NeoForge
           - loader: neoforge
             version: "1.21.1"
           - loader: neoforge
@@ -61,34 +65,54 @@ jobs:
             version: "1.21.10"
           - loader: neoforge
             version: "1.21.11"
+
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+
       - name: Setup Java
         uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "21"
           cache: gradle
+
       - name: Make Gradle executable
         run: chmod +x "${{ matrix.loader }}/${{ matrix.version }}/gradlew"
+
       - name: Build
         working-directory: ${{ matrix.loader }}/${{ matrix.version }}
         run: ./gradlew build --no-daemon
-      - name: Find JAR
+
+      - name: Find production JAR
         id: jar
         working-directory: ${{ matrix.loader }}/${{ matrix.version }}
         shell: bash
         run: |
-          JAR=$(find build/libs -maxdepth 1 -type f -name "*.jar" ! -name "*-sources.jar" | head -n 1)
+          echo "Build output:"
+          ls -lah build/libs
+
+          JAR=$(find build/libs \
+            -maxdepth 1 \
+            -type f \
+            -name "*.jar" \
+            ! -name "*-sources.jar" \
+            ! -name "*-dev.jar" \
+            ! -name "*-dev-shadow.jar" \
+            ! -name "*-shadow.jar" \
+            | head -n 1)
+
           if [ -z "$JAR" ]; then
-            echo "No JAR found!"
-            ls -la build/libs
+            echo "ERROR: Production JAR not found!"
+            echo "Available files:"
+            find build/libs -maxdepth 1 -type f -name "*.jar" -print
             exit 1
           fi
-          echo "Found: $JAR"
+
+          echo "Production JAR: $JAR"
           echo "path=$JAR" >> "$GITHUB_OUTPUT"
-      - name: Upload JAR
+
+      - name: Upload production JAR
         uses: actions/upload-artifact@v4
         with:
           name: LazoBoombox-${{ matrix.loader }}-${{ matrix.version }}
@@ -99,19 +123,50 @@ jobs:
     name: Create GitHub Release
     needs: build
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+
       - name: Download all JARs
         uses: actions/download-artifact@v5
         with:
           path: release-assets
           pattern: LazoBoombox-*
           merge-multiple: true
+
       - name: Show release files
         run: |
           echo "Release files:"
           find release-assets -type f -name "*.jar" -print
+
+      - name: Verify release files
+        shell: bash
+        run: |
+          echo "Checking release files..."
+
+          if find release-assets -type f \
+            \( -name "*-sources.jar" \
+            -o -name "*-dev.jar" \
+            -o -name "*-dev-shadow.jar" \
+            -o -name "*-shadow.jar" \) \
+            | grep -q .; then
+
+            echo "ERROR: Development/source JAR found in release-assets!"
+            find release-assets -type f -name "*.jar" -print
+            exit 1
+          fi
+
+          COUNT=$(find release-assets -type f -name "*.jar" | wc -l)
+
+          echo "Production JAR count: $COUNT"
+
+          if [ "$COUNT" -ne 22 ]; then
+            echo "ERROR: Expected 22 production JARs, found $COUNT!"
+            find release-assets -type f -name "*.jar" -print
+            exit 1
+          fi
+
       - name: Create Release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -121,6 +176,7 @@ jobs:
           else
             TAG="build-${GITHUB_RUN_NUMBER}"
           fi
+
           gh release create "$TAG" \
             release-assets/*.jar \
             --title "LazoBoombox $TAG" \
