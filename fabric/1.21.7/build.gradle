@@ -31,8 +31,10 @@ dependencies {
     modImplementation 'net.fabricmc:fabric-loader:0.19.3'
     modImplementation 'net.fabricmc.fabric-api:fabric-api:0.129.0+1.21.7'
     compileOnly('su.plo.voice.api:server:2.1.10') { exclude group: 'com.google.guava', module: 'guava'; exclude group: 'com.google.guava', module: 'failureaccess'; exclude group: 'com.google.guava', module: 'listenablefuture'; exclude group: 'com.google.code.findbugs', module: 'jsr305'; exclude group: 'org.checkerframework', module: 'checker-qual'; exclude group: 'com.google.errorprone', module: 'error_prone_annotations'; exclude group: 'com.google.j2objc', module: 'j2objc-annotations'; exclude group: 'it.unimi.dsi', module: 'fastutil'; exclude group: 'com.google.code.gson', module: 'gson' }
-    shade('dev.arbjerg:lavaplayer:2.2.6') { exclude group: 'org.slf4j', module: 'slf4j-api'; exclude group: 'commons-io', module: 'commons-io'; exclude group: 'commons-codec', module: 'commons-codec'; exclude group: 'net.java.dev.jna', module: 'jna'; exclude group: 'org.jetbrains', module: 'annotations'; exclude group: 'org.jetbrains.kotlin'; exclude group: 'org.jetbrains.kotlinx' }
-    shade('dev.lavalink.youtube:v2:f45bbb7aebfcbc1c553769e04af6cd43afa8b7c3-SNAPSHOT') { exclude group: 'org.slf4j', module: 'slf4j-api'; exclude group: 'commons-io', module: 'commons-io'; exclude group: 'commons-codec', module: 'commons-codec'; exclude group: 'net.java.dev.jna', module: 'jna'; exclude group: 'org.jetbrains', module: 'annotations'; exclude group: 'org.jetbrains.kotlin'; exclude group: 'org.jetbrains.kotlinx' }
+    // LazoDiscs is a required dependency and already bundles LavaPlayer at runtime.
+    // compileOnly (not shade) avoids a second copy on the classpath, which is what caused
+    // the NeoForge JPMS split-package crash together with the youtube-source/Rhino shade removed below.
+    compileOnly('dev.arbjerg:lavaplayer:2.2.6') { exclude group: 'org.slf4j', module: 'slf4j-api'; exclude group: 'commons-io', module: 'commons-io'; exclude group: 'commons-codec', module: 'commons-codec'; exclude group: 'net.java.dev.jna', module: 'jna'; exclude group: 'org.jetbrains', module: 'annotations'; exclude group: 'org.jetbrains.kotlin'; exclude group: 'org.jetbrains.kotlinx' }
 }
 tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }
 processResources { inputs.property 'version', project.version; filesMatching('fabric.mod.json') { expand version: project.version } }
