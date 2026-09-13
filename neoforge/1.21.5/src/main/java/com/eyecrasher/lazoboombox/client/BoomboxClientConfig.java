@@ -24,7 +24,21 @@ public final class BoomboxClientConfig {
     public static int getXOffset() { return xOffset; }
     public static int getYOffset() { return yOffset; }
     public static boolean isTimerVisible() { return timerVisible; }
-    private static void writeDefault() throws Exception { try (BufferedWriter w = Files.newBufferedWriter(CONFIG_FILE)) { w.write("# LazoBoombox client config\ntimer_position = \"top_right\"\n\ntimer_x_offset = 8\ntimer_y_offset = 8\n\ntimer_visible = true\n"); } }
+    private static void writeDefault() throws Exception {
+        try (BufferedWriter w = Files.newBufferedWriter(CONFIG_FILE)) {
+            w.write("# LazoBoombox client configuration\n");
+            w.write("# Controls the HUD timer overlay (MM:SS / MM:SS) shown when holding a playing boombox.\n\n");
+            w.write("# Position of the timer on screen.\n");
+            w.write("# Options: top_left, top_center, top_right, center_left, center, center_right, bottom_left, bottom_center, bottom_right\n");
+            w.write("timer_position = \"top_right\"\n\n");
+            w.write("# Pixel offset from the anchor position (horizontal).\n");
+            w.write("timer_x_offset = 8\n\n");
+            w.write("# Pixel offset from the anchor position (vertical).\n");
+            w.write("timer_y_offset = 8\n\n");
+            w.write("# Show or hide the timer overlay.\n");
+            w.write("timer_visible = true\n");
+        }
+    }
     private static HudPosition parsePosition(String val, HudPosition fallback) { try { return HudPosition.valueOf(val.toUpperCase(Locale.ROOT)); } catch (Exception e) { return fallback; } }
     private static int parseInt(String val, int fallback, int min, int max) { try { return Math.max(min, Math.min(max, Integer.parseInt(val))); } catch (Exception e) { return fallback; } }
     private static boolean parseBool(String val, boolean fallback) { String t = val.toLowerCase(Locale.ROOT); if (t.equals("true") || t.equals("yes") || t.equals("1")) return true; if (t.equals("false") || t.equals("no") || t.equals("0")) return false; return fallback; }

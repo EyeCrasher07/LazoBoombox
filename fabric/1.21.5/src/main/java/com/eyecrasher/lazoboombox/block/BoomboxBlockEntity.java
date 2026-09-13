@@ -15,7 +15,7 @@ public class BoomboxBlockEntity extends BlockEntity {
     public void setOwner(UUID o) { owner = o; }
     @Override protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
-        if (!disc.isEmpty()) { CompoundTag discTag = new CompoundTag(); disc.save(registries, discTag); tag.put("disc", discTag); }
+        if (!disc.isEmpty()) tag.put("disc", disc.save(registries));
         if (owner != null) tag.putString("owner", owner.toString());
     }
     @Override protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
@@ -24,15 +24,28 @@ public class BoomboxBlockEntity extends BlockEntity {
         String os = tag.getStringOr("owner", "");
         if (!os.isBlank()) { try { this.owner = UUID.fromString(os); } catch (Exception e) { this.owner = null; } }
         else { this.owner = null; }
+        // Resync playback immediately after loading from NBT.
+        // This is called when the chunk loads or Sable re-places the block entity.
+        resyncPlayback();
     }
     @Override public CompoundTag getUpdateTag(HolderLookup.Provider r) { return saveWithFullMetadata(r); }
     @Override public Packet<ClientGamePacketListener> getUpdatePacket() { return ClientboundBlockEntityDataPacket.create(this); }
+    private void resyncPlayback() {
+        if (!hasDisc()) return;
+        if (!(level instanceof ServerLevel sl)) return;
+        if (sl.getBlockState(getBlockPos()).isAir()) return;
+        CustomDiscData data = DiscDataUtil.read(disc).orElse(null);
+        if (data == null || !BoomboxConfig.FEATURE_PLACED_BOOMBOX.get()) return;
+        BoomboxPlaybackManager.INSTANCE.startPlaced(sl, getBlockPos(), data);
+    }
     private int tickCounter = 0;
     public void serverTick() {
         if (!hasDisc()) return; if ((++tickCounter) % 20 != 0) return; if (!(level instanceof ServerLevel sl)) return;
+        if (sl.getBlockState(getBlockPos()).isAir()) return;
         if (!BoomboxPlaybackManager.INSTANCE.isPlacedActive(sl, getBlockPos())) {
             CustomDiscData data = DiscDataUtil.read(disc).orElse(null); if (data == null || !BoomboxConfig.FEATURE_PLACED_BOOMBOX.get()) return;
             BoomboxPlaybackManager.INSTANCE.startPlaced(sl, getBlockPos(), data);
         }
+        BoomboxPlaybackManager.INSTANCE.updatePlacedPositionIfDynamic(sl, getBlockPos());
     }
 }

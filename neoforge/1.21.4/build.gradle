@@ -3,7 +3,7 @@ plugins {
     id 'net.neoforged.moddev' version '2.0.141'
     id 'com.gradleup.shadow' version '8.3.7'
 }
-version = '0.1.0+1.21.4'
+version = '0.1.1+1.21.4'
 group = 'com.eyecrasher'
 base { archivesName = 'lazoboombox-neoforge' }
 java {

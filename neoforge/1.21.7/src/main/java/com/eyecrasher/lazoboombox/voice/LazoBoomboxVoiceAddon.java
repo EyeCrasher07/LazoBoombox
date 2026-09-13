@@ -2,7 +2,7 @@ package com.eyecrasher.lazoboombox.voice;
 import com.eyecrasher.lazoboombox.LazoBoombox; import com.eyecrasher.lazoboombox.server.BoomboxPlaybackManager;
 import su.plo.voice.api.addon.AddonInitializer; import su.plo.voice.api.addon.InjectPlasmoVoice; import su.plo.voice.api.addon.annotation.Addon; import su.plo.voice.api.server.PlasmoVoiceServer;
 import java.io.InputStream;
-@Addon(id = "lazoboombox", name = "LazoBoombox", version = "0.1.0+mc1.21.11", authors = {"EyeCrasher"})
+@Addon(id = "lazoboombox", name = "LazoBoombox", version = "0.1.1+mc1.21.7", authors = {"EyeCrasher"})
 public final class LazoBoomboxVoiceAddon implements AddonInitializer {
     @InjectPlasmoVoice private PlasmoVoiceServer voiceServer;
     @Override public void onAddonInitialize() {

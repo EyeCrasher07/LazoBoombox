@@ -1,7 +1,7 @@
 package com.eyecrasher.lazoboombox.voice;
-import com.eyecrasher.lazoboombox.LazoBoombox; import com.eyecrasher.lazoboombox.config.BoomboxConfig;
+import com.eyecrasher.lazoboombox.LazoBoombox; import com.eyecrasher.lazoboombox.compat.BoomboxSableCompat; import com.eyecrasher.lazoboombox.config.BoomboxConfig;
 import com.eyecrasher.lazodiscs.LazoDiscsServerBootstrap; import com.eyecrasher.lazodiscs.data.CustomDiscData;
-import com.eyecrasher.lazodiscs.voice.LavaPcmFeeder; import net.minecraft.server.level.ServerLevel; import net.minecraft.server.level.ServerPlayer;
+import com.eyecrasher.lazodiscs.voice.LavaPcmFeeder; import net.minecraft.core.BlockPos; import net.minecraft.server.level.ServerLevel; import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.phys.Vec3; import su.plo.slib.api.server.entity.McServerEntity; import su.plo.slib.api.server.position.ServerPos3d; import su.plo.slib.api.server.world.McServerWorld;
 import su.plo.voice.api.server.PlasmoVoiceServer; import su.plo.voice.api.server.audio.line.ServerSourceLine; import su.plo.voice.api.server.audio.source.AudioSender;
 import su.plo.voice.api.server.audio.source.ServerProximitySource; import su.plo.voice.api.server.audio.source.ServerEntitySource; import su.plo.voice.api.server.audio.source.ServerStaticSource;
@@ -20,16 +20,18 @@ public final class BoomboxAudioEngine {
         McServerEntity mcEntity;
         try { var vp = server.getPlayerManager().getPlayerByInstance(player); if (vp == null) throw new IllegalStateException("PV player not found"); mcEntity = vp.getInstance(); }
         catch (Throwable t) { throw new IllegalStateException("Could not get McServerEntity", t); }
-        return startInternal(server, line, disc, onFinished, () -> line.createEntitySource(mcEntity, false), true);
+        return startInternal(server, line, disc, onFinished, () -> line.createEntitySource(mcEntity, false), true, false);
     }
     public static BoomboxPlayback start(ServerLevel level, Vec3 pos, CustomDiscData disc, Runnable onFinished) {
         PlasmoVoiceServer server = voiceServer; ServerSourceLine line = boomboxLine;
         if (server == null || line == null) throw new IllegalStateException("LazoBoombox PV source line not initialized");
         Optional<McServerWorld> wr = findWorld(server, level); if (wr.isEmpty()) throw new IllegalStateException("Could not resolve PV world for " + dimensionId(level));
-        ServerPos3d pvPos = new ServerPos3d(wr.get(), pos.x, pos.y, pos.z);
-        return startInternal(server, line, disc, onFinished, () -> line.createStaticSource(pvPos, false), false);
+        Vec3 projectedPos = BoomboxSableCompat.projectBoomboxCenter(level, BlockPos.containing(pos));
+        boolean dynamicPosition = BoomboxSableCompat.isProbablySubLevel(BlockPos.containing(pos)) || !projectedPos.equals(pos);
+        ServerPos3d pvPos = new ServerPos3d(wr.get(), projectedPos.x, projectedPos.y, projectedPos.z);
+        return startInternal(server, line, disc, onFinished, () -> line.createStaticSource(pvPos, false), false, dynamicPosition);
     }
-    private static BoomboxPlayback startInternal(PlasmoVoiceServer server, ServerSourceLine line, CustomDiscData disc, Runnable onFinished, java.util.function.Supplier<ServerProximitySource<?>> sc, boolean isEntity) {
+    private static BoomboxPlayback startInternal(PlasmoVoiceServer server, ServerSourceLine line, CustomDiscData disc, Runnable onFinished, java.util.function.Supplier<ServerProximitySource<?>> sc, boolean isEntity, boolean dynamicPosition) {
         AtomicBoolean stopped = new AtomicBoolean(false), manualStop = new AtomicBoolean(false), finishedNotified = new AtomicBoolean(false);
         AtomicReference<LavaPcmFeeder.StreamingPlayback> playbackRef = new AtomicReference<>();
         AtomicReference<ServerProximitySource<?>> sourceRef = new AtomicReference<>(); AtomicReference<AudioSender> senderRef = new AtomicReference<>(); AtomicReference<Future<?>> taskRef = new AtomicReference<>();
@@ -50,9 +52,14 @@ public final class BoomboxAudioEngine {
         });
         taskRef.set(task);
         Runnable stopAction = () -> { if (!stopped.compareAndSet(false, true)) return; manualStop.set(true); var t = taskRef.getAndSet(null); if (t != null) t.cancel(true); var s = senderRef.getAndSet(null); if (s != null) try { s.stop(); } catch (Exception e) {} cleanup.run(); };
-        BiConsumer<ServerLevel, Vec3> pu = (ul, projected) -> { if (isEntity) return; if (stopped.get()) return; var s = sourceRef.get(); if (s == null) return; if (!(s instanceof ServerStaticSource)) return;
+        java.util.concurrent.atomic.AtomicReference<Vec3> lastProjectedPosition = new java.util.concurrent.atomic.AtomicReference<>();
+        BiConsumer<ServerLevel, Vec3> pu = (ul, projected) -> {
+            if (isEntity) return; if (stopped.get()) return; var s = sourceRef.get(); if (s == null) return; if (!(s instanceof ServerStaticSource)) return;
+            Vec3 last = lastProjectedPosition.get();
+            if (last != null && last.distanceToSqr(projected) < 1.0e-4D) return;
+            lastProjectedPosition.set(projected);
             try { var w = findWorld(server, ul).orElseThrow(); ((ServerStaticSource) s).setPosition(new ServerPos3d(w, projected.x, projected.y, projected.z)); } catch (Exception e) {} };
-        return new BoomboxPlayback(disc.title(), playbackRef, stopped, stopAction, pu);
+        return new BoomboxPlayback(disc.title(), playbackRef, stopped, stopAction, pu, new java.util.concurrent.atomic.AtomicBoolean(dynamicPosition));
     }
     static int effectiveRange(int discRange) {
         double vol = BoomboxConfig.BOOMBOX_VOLUME.get(); int max = BoomboxConfig.BOOMBOX_MAX_RADIUS.get();

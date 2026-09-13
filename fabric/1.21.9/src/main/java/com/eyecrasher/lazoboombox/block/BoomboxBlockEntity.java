@@ -12,15 +12,25 @@ public class BoomboxBlockEntity extends BlockEntity {
     public boolean hasDisc() { return !disc.isEmpty(); } public ItemStack getDisc() { return disc.copy(); } public void setDisc(ItemStack d) { disc = d == null ? ItemStack.EMPTY : d; }
     public UUID getOwner() { return owner; } public void setOwner(UUID o) { owner = o; }
     @Override protected void saveAdditional(ValueOutput output) { super.saveAdditional(output); if (!disc.isEmpty()) output.store("disc", ItemStack.CODEC, disc); if (owner != null) output.putString("owner", owner.toString()); }
-    @Override protected void loadAdditional(ValueInput input) { super.loadAdditional(input); disc = input.read("disc", ItemStack.CODEC).orElse(ItemStack.EMPTY); String os = input.getStringOr("owner", ""); if (!os.isBlank()) try { owner = UUID.fromString(os); } catch (Exception e) { owner = null; } else owner = null; }
+    @Override protected void loadAdditional(ValueInput input) { super.loadAdditional(input); disc = input.read("disc", ItemStack.CODEC).orElse(ItemStack.EMPTY); String os = input.getStringOr("owner", ""); if (!os.isBlank()) try { owner = UUID.fromString(os); } catch (Exception e) { owner = null; } else owner = null; resyncPlayback(); }
     @Override public CompoundTag getUpdateTag(HolderLookup.Provider r) { return saveWithFullMetadata(r); }
     @Override public Packet<ClientGamePacketListener> getUpdatePacket() { return ClientboundBlockEntityDataPacket.create(this); }
+    private void resyncPlayback() {
+        if (!hasDisc()) return;
+        if (!(level instanceof ServerLevel sl)) return;
+        if (sl.getBlockState(getBlockPos()).isAir()) return;
+        CustomDiscData data = DiscDataUtil.read(disc).orElse(null);
+        if (data == null || !BoomboxConfig.FEATURE_PLACED_BOOMBOX.get()) return;
+        BoomboxPlaybackManager.INSTANCE.startPlaced(sl, getBlockPos(), data);
+    }
     private int tickCounter = 0;
     public void serverTick() {
         if (!hasDisc()) return; if ((++tickCounter) % 20 != 0) return; if (!(level instanceof ServerLevel sl)) return;
+        if (sl.getBlockState(getBlockPos()).isAir()) return;
         if (!BoomboxPlaybackManager.INSTANCE.isPlacedActive(sl, getBlockPos())) {
             CustomDiscData data = DiscDataUtil.read(disc).orElse(null); if (data == null || !BoomboxConfig.FEATURE_PLACED_BOOMBOX.get()) return;
             BoomboxPlaybackManager.INSTANCE.startPlaced(sl, getBlockPos(), data);
         }
+        BoomboxPlaybackManager.INSTANCE.updatePlacedPositionIfDynamic(sl, getBlockPos());
     }
 }

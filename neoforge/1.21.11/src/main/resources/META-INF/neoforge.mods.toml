@@ -3,7 +3,7 @@ loaderVersion="[4,)"
 license="GPL-3.0-only"
 [[mods]]
 modId="lazoboombox"
-version="0.1.0+mc1.21.11"
+version="0.1.1+mc1.21.11"
 displayName="LazoBoombox"
 displayTest="IGNORE_ALL_VERSION"
 logoFile="icon.png"
@@ -32,4 +32,13 @@ modId="lazodiscs"
 type="required"
 versionRange="[1.0.3,)"
 ordering="NONE"
+side="BOTH"
+
+# Optional Sable integration — loaded AFTER so our FMLCommonSetupEvent can probe
+# Sable's classes before registering the SablePostPhysicsTickEvent listener.
+[[dependencies.lazoboombox]]
+modId="sable"
+type="optional"
+versionRange="[2.0.0,)"
+ordering="AFTER"
 side="BOTH"

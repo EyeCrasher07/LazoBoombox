@@ -1,6 +1,6 @@
 package com.eyecrasher.lazoboombox;
 import com.eyecrasher.lazoboombox.block.ModBlocks; import com.eyecrasher.lazoboombox.config.BoomboxConfig;
-import com.eyecrasher.lazoboombox.event.BoomboxEvents; import com.eyecrasher.lazoboombox.item.ModCreativeTabs;
+import com.eyecrasher.lazoboombox.event.BoomboxEvents; import com.eyecrasher.lazoboombox.event.BoomboxSableEvents; import com.eyecrasher.lazoboombox.item.ModCreativeTabs;
 import com.eyecrasher.lazoboombox.item.ModItems; import com.eyecrasher.lazoboombox.network.BoomboxNetworking;
 import net.fabricmc.api.ModInitializer; import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 public final class LazoBoombox implements ModInitializer {
@@ -10,6 +10,7 @@ public final class LazoBoombox implements ModInitializer {
     @Override public void onInitialize() {
         BoomboxConfig.load(); BoomboxNetworking.registerServer();
         ModBlocks.initialize(); ModItems.initialize(); ModCreativeTabs.initialize(); BoomboxEvents.register();
+        BoomboxSableEvents.registerIfSablePresent();
         LOGGER.info("LazoBoombox initialized (addon for LazoDiscs).");
     }
     public static net.minecraft.server.MinecraftServer getCurrentServer() { return currentServer; }
