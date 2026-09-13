@@ -5,5 +5,8 @@
   "environment": "*",
   "entrypoints": { "main": ["com.eyecrasher.lazoboombox.LazoBoombox"], "client": ["com.eyecrasher.lazoboombox.LazoBoomboxClient"] },
   "mixins": ["lazoboombox.mixins.json"],
-    "depends": { "fabricloader": ">=0.16.0", "fabric": "*", "minecraft": "1.21.1", "java": ">=21", "plasmovoice": ">=2.1.8", "lazodiscs": ">=1.0.3" }
+    "depends": { "fabricloader": ">=0.16.0", "fabric": "*", "minecraft": "1.21.1", "java": ">=21", "plasmovoice": ">=2.1.8", "lazodiscs": ">=1.0.3" },
+  "suggests": {
+    "sable": "*"
+  }
 }
