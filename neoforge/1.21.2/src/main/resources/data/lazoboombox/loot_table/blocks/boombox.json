@@ -1,5 +1,15 @@
 {
   "type": "minecraft:block",
-  "pools": [{ "bonus_rolls": 0.0, "conditions": [{ "condition": "minecraft:survives_explosion" }], "entries": [{ "type": "minecraft:item", "name": "lazoboombox:boombox" }], "rolls": 1.0 }],
+  "pools": [{ "bonus_rolls": 0.0, "conditions": [{ "condition": "minecraft:survives_explosion" }], "entries": [{
+    "type": "minecraft:item", "name": "lazoboombox:boombox",
+    "functions": [{
+      "function": "minecraft:copy_custom_data",
+      "source": "block_entity",
+      "ops": [
+        { "source": "disc", "target": "lazoboombox_boombox.disc", "op": "replace" },
+        { "source": "owner", "target": "lazoboombox_boombox.owner", "op": "replace" }
+      ]
+    }]
+  }], "rolls": 1.0 }],
   "random_sequence": "lazoboombox:blocks/boombox"
 }

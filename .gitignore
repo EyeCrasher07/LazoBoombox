@@ -1,0 +1,15 @@
+.gradle/
+build/
+run/
+out/
+.idea/
+*.iml
+*.log
+.agents/
+.sober/
+
+# Release artifacts, tool cache and private agent material
+dist/
+.cache/
+.agents/
+.sober/

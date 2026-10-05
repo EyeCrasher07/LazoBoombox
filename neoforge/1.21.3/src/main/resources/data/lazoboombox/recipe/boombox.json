@@ -7,24 +7,12 @@
     "GRG"
   ],
   "key": {
-    "S": {
-      "item": "minecraft:stone_button"
-    },
-    "A": {
-      "item": "minecraft:glass_pane"
-    },
-    "I": {
-      "item": "minecraft:iron_ingot"
-    },
-    "N": {
-      "item": "minecraft:jukebox"
-    },
-    "G": {
-      "item": "minecraft:gold_nugget"
-    },
-    "R": {
-      "item": "minecraft:redstone"
-    }
+    "S": "minecraft:stone_button",
+    "A": "minecraft:glass_pane",
+    "I": "minecraft:iron_ingot",
+    "N": "minecraft:jukebox",
+    "G": "minecraft:gold_nugget",
+    "R": "minecraft:redstone"
   },
   "result": {
     "count": 1,

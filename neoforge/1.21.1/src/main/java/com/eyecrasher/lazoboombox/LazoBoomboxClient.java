@@ -1,6 +1,8 @@
 package com.eyecrasher.lazoboombox;
+
 import com.eyecrasher.lazoboombox.client.BoomboxClientConfig;
 import com.eyecrasher.lazoboombox.client.BoomboxHudOverlay;
+
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
@@ -11,5 +13,8 @@ public final class LazoBoomboxClient {
     public LazoBoomboxClient(IEventBus modBus) {
         BoomboxClientConfig.load();
         NeoForge.EVENT_BUS.addListener(BoomboxHudOverlay::onRender);
+        NeoForge.EVENT_BUS.addListener(
+                (net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent.LoggingOut event) ->
+                        BoomboxHudOverlay.setState(false, 0L, 0L));
     }
 }

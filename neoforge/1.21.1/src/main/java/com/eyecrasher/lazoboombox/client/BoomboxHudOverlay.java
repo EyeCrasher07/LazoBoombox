@@ -1,6 +1,8 @@
 package com.eyecrasher.lazoboombox.client;
-import com.eyecrasher.lazoboombox.data.BoomboxData;
+
 import com.eyecrasher.lazoboombox.block.ModBlocks;
+import com.eyecrasher.lazoboombox.data.BoomboxData;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
@@ -8,15 +10,14 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.client.event.RenderGuiEvent;
 
 public final class BoomboxHudOverlay {
-    private static volatile boolean active = false;
-    private static volatile long positionMs = 0L, durationMs = 0L;
+    private record TimerState(boolean active, long positionMs, long durationMs) {}
+
+    private static volatile TimerState state = new TimerState(false, 0L, 0L);
 
     public BoomboxHudOverlay() {}
 
     public static void setState(boolean active, long positionMs, long durationMs) {
-        BoomboxHudOverlay.active = active;
-        BoomboxHudOverlay.positionMs = positionMs;
-        BoomboxHudOverlay.durationMs = durationMs;
+        state = new TimerState(active, Math.max(0L, positionMs), Math.max(0L, durationMs));
     }
 
     public static void onRender(RenderGuiEvent.Post event) {
@@ -25,11 +26,13 @@ public final class BoomboxHudOverlay {
 
     public static void render(GuiGraphics graphics) {
         Minecraft mc = Minecraft.getInstance();
-        if (mc.player == null || mc.font == null) return;
+        if (mc.player == null || mc.font == null || mc.options.hideGui) return;
         if (!BoomboxClientConfig.isTimerVisible()) return;
+        TimerState current = state;
         ItemStack held = heldBoombox(mc);
-        if (held == null || !BoomboxData.hasDisc(held) || !active) return;
-        String timeText = formatTime(positionMs) + " / " + formatTime(durationMs);
+        if (held == null || !current.active()) return;
+        String timeText =
+                formatTime(current.positionMs()) + " / " + formatTime(current.durationMs());
         int textWidth = mc.font.width(timeText);
         int sw = graphics.guiWidth(), sh = graphics.guiHeight();
         int xo = BoomboxClientConfig.getXOffset(), yo = BoomboxClientConfig.getYOffset();
@@ -47,21 +50,25 @@ public final class BoomboxHudOverlay {
             case BOTTOM_LEFT, BOTTOM_CENTER, BOTTOM_RIGHT -> y = sh - mc.font.lineHeight - yo;
             default -> y = yo;
         }
-        graphics.fill(x - 8, y - 4, x - 8 + textWidth + 16, y - 4 + mc.font.lineHeight + 8, 0x80000000);
+        graphics.fill(
+                x - 8, y - 4, x - 8 + textWidth + 16, y - 4 + mc.font.lineHeight + 8, 0x80000000);
         graphics.drawString(mc.font, Component.literal(timeText), x, y, 0xFFFFFFFF, false);
     }
 
     private static String formatTime(long ms) {
         if (ms < 0) ms = 0;
         long s = ms / 1000L;
-        return String.format("%02d:%02d", s / 60L, s % 60L);
+        return String.format(java.util.Locale.ROOT, "%02d:%02d", s / 60L, s % 60L);
     }
 
     private static ItemStack heldBoombox(Minecraft mc) {
-        ItemStack m = mc.player.getMainHandItem();
-        if (m.getItem() == ModBlocks.BOOMBOX_ITEM.get()) return m;
-        ItemStack o = mc.player.getOffhandItem();
-        if (o.getItem() == ModBlocks.BOOMBOX_ITEM.get()) return o;
+        for (ItemStack stack :
+                new ItemStack[] {mc.player.getMainHandItem(), mc.player.getOffhandItem()}) {
+            if (stack.getItem() != ModBlocks.BOOMBOX_ITEM.get() || !BoomboxData.hasDisc(stack))
+                continue;
+            ItemStack disc = BoomboxData.readDisc(stack, mc.player.registryAccess());
+            if (com.eyecrasher.lazodiscs.data.DiscDataUtil.read(disc).isPresent()) return stack;
+        }
         return null;
     }
 }

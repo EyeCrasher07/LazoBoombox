@@ -1,1 +1,10 @@
-{"pack": {"description": "LazoBoombox resources", "pack_format": 49}}
+{
+  "pack": {
+    "description": "LazoBoombox resources",
+    "pack_format": 42,
+    "supported_formats": {
+      "min_inclusive": 42,
+      "max_inclusive": 57
+    }
+  }
+}

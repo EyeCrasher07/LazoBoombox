@@ -1,23 +1,28 @@
 package com.eyecrasher.lazoboombox.event;
+
 import com.eyecrasher.lazoboombox.LazoBoombox;
 import com.eyecrasher.lazoboombox.server.BoomboxPlaybackManager;
 import com.eyecrasher.lazoboombox.voice.LazoBoomboxServerBootstrap;
+
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
-import net.neoforged.neoforge.event.server.ServerStoppingEvent;
-import net.neoforged.neoforge.event.server.ServerStoppedEvent;
-import net.neoforged.neoforge.event.tick.ServerTickEvent;
-import net.neoforged.neoforge.event.level.ChunkEvent;
+import net.neoforged.neoforge.common.util.TriState;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.neoforge.event.level.ChunkEvent;
+import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
+import net.neoforged.neoforge.event.server.ServerStoppedEvent;
+import net.neoforged.neoforge.event.server.ServerStoppingEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
 public final class BoomboxEvents {
     private BoomboxEvents() {}
 
     public static void register() {
-        // Registration happens via NeoForge.EVENT_BUS.register(BoomboxEvents.class) in LazoBoombox constructor
+        // Registration happens via NeoForge.EVENT_BUS.register(BoomboxEvents.class) in LazoBoombox
+        // constructor
     }
 
     @SubscribeEvent
@@ -40,7 +45,8 @@ public final class BoomboxEvents {
     public static void onServerTick(ServerTickEvent.Post event) {
         for (ServerPlayer player : event.getServer().getPlayerList().getPlayers()) {
             BoomboxPlaybackManager.INSTANCE.tickPlayer(player);
-            if (event.getServer().getTickCount() % 4 == 0) BoomboxPlaybackManager.INSTANCE.tickHud(player);
+            if (event.getServer().getTickCount() % 4 == 0)
+                BoomboxPlaybackManager.INSTANCE.tickHud(player);
         }
     }
 
@@ -60,5 +66,15 @@ public final class BoomboxEvents {
     public static void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
         if (event.getEntity() instanceof ServerPlayer sp)
             BoomboxPlaybackManager.INSTANCE.stopHeld(sp.getUUID(), "player-disconnect");
+    }
+
+    @SubscribeEvent
+    public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
+        if (event.getEntity().isSpectator() || !event.getEntity().isShiftKeyDown()) return;
+        if (event.getLevel().getBlockState(event.getPos()).getBlock()
+                instanceof com.eyecrasher.lazoboombox.block.BoomboxBlock) {
+            event.setUseBlock(TriState.TRUE);
+            event.setUseItem(TriState.FALSE);
+        }
     }
 }

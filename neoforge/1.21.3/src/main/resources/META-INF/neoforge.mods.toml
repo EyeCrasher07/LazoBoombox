@@ -3,7 +3,7 @@ loaderVersion="[4,)"
 license="GPL-3.0-only"
 [[mods]]
 modId="lazoboombox"
-version="0.1.1+mc1.21.3"
+version="${version}"
 displayName="LazoBoombox"
 displayTest="IGNORE_ALL_VERSION"
 logoFile="icon.png"
@@ -12,13 +12,13 @@ description="Portable + placeable Boombox addon for LazoDiscs."
 [[dependencies.lazoboombox]]
 modId="neoforge"
 type="required"
-versionRange="[21.1.0,)"
+versionRange="[21.3.0,)"
 ordering="NONE"
 side="BOTH"
 [[dependencies.lazoboombox]]
 modId="minecraft"
 type="required"
-versionRange="[1.21.3,)"
+versionRange="[1.21.3,1.21.4)"
 ordering="NONE"
 side="BOTH"
 [[dependencies.lazoboombox]]
@@ -30,7 +30,7 @@ side="BOTH"
 [[dependencies.lazoboombox]]
 modId="lazodiscs"
 type="required"
-versionRange="[1.0.3,)"
+versionRange="[1.0.5,)"
 ordering="NONE"
 side="BOTH"
 
