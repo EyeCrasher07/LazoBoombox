@@ -74,27 +74,6 @@ Configuration file:
 
 These ranges describe source ports. Runtime support also requires a matching Plasmo Voice build. Its official [2.1.17 release](https://github.com/plasmoapp/plasmo-voice/releases/tag/2.1.17) covers 1.21.1, 1.21.4, 1.21.6–1.21.8, and 1.21.11; the other ports need a compatible Plasmo Voice build before use.
 
-## Building and verification
-
-Use Java 21 and Node.js 22 or newer. Run from the repository root:
-
-```sh
-node tools/verify-projects.mjs
-node tools/test-playback-regressions.mjs
-node tools/test-creative-tabs.mjs
-node tools/test-block-registration.mjs
-node tools/test-release-tools.mjs
-node tools/format-java.mjs --check
-node tools/build-all.mjs
-git diff --check
-```
-
-For one target, run `./gradlew clean build` inside its directory. Full builds return a nonzero exit code on failure and record results in `dist/build-results-all.json`. Avoid concurrent uncached builds for the same Minecraft version against a shared Loom cache.
-
-Java uses AOSP formatting (four-space indentation). Apply it with `node tools/format-java.mjs --write`; the tool checks the downloaded formatter's pinned SHA-256. Behavioral tests compile production classes with a controlled Minecraft/PV environment, not a live game. Creative inventory regressions exercise each production registrar, including functional-tab ordering and search visibility; they do not render the actual game menu.
-
-Prepare checked normal JARs, checksums and a manifest with `node tools/prepare-release.mjs`. This performs no upload. Follow the [release checklist](docs/RELEASING.md) before publishing to GitHub, Modrinth or CurseForge.
-
 ## Related Projects
 
 * [LazoDiscs](https://modrinth.com/mod/lazodiscs) — custom music discs with positional audio
