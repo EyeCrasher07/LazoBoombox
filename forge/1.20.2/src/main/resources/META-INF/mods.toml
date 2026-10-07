@@ -1,0 +1,44 @@
+modLoader="javafml"
+loaderVersion="[48,)"
+license="GPL-3.0-only"
+[[mods]]
+modId="lazoboombox"
+version="${version}"
+displayName="LazoBoombox"
+displayTest="IGNORE_ALL_VERSION"
+logoFile="icon.png"
+authors="EyeCrasher"
+description="Portable + placeable Boombox addon for LazoDiscs."
+[[dependencies.lazoboombox]]
+modId="forge"
+mandatory=true
+versionRange="[48.1.0,49)"
+ordering="NONE"
+side="BOTH"
+[[dependencies.lazoboombox]]
+modId="minecraft"
+mandatory=true
+versionRange="[1.20.2,1.20.3)"
+ordering="NONE"
+side="BOTH"
+[[dependencies.lazoboombox]]
+modId="plasmovoice"
+mandatory=true
+versionRange="[2.1.8,)"
+ordering="NONE"
+side="BOTH"
+[[dependencies.lazoboombox]]
+modId="lazodiscs"
+mandatory=true
+versionRange="[1.0.6,)"
+ordering="NONE"
+side="BOTH"
+
+# Optional Sable integration — loaded AFTER so our FMLCommonSetupEvent can probe
+# Sable's classes before registering the SablePostPhysicsTickEvent listener.
+[[dependencies.lazoboombox]]
+modId="sable"
+mandatory=false
+versionRange="[2.0.0,)"
+ordering="AFTER"
+side="BOTH"

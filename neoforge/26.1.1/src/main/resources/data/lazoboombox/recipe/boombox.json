@@ -1,0 +1,6 @@
+{
+  "type": "minecraft:crafting_shaped", "category": "misc",
+  "pattern": ["SAS", "INI", "GRG"],
+  "key": { "S": "minecraft:stone_button", "A": "minecraft:glass_pane", "I": "minecraft:iron_ingot", "N": "minecraft:jukebox", "G": "minecraft:gold_nugget", "R": "minecraft:redstone" },
+  "result": { "count": 1, "id": "lazoboombox:boombox" }
+}

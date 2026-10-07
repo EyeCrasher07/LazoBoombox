@@ -21,6 +21,7 @@ import java.util.UUID;
 public class BoomboxBlockEntity extends BlockEntity {
     private ItemStack disc = ItemStack.EMPTY;
     private UUID owner;
+    private int color = com.eyecrasher.lazoboombox.data.BoomboxData.UNPAINTED;
 
     public BoomboxBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlocks.BOOMBOX_ENTITY, pos, state);
@@ -38,6 +39,17 @@ public class BoomboxBlockEntity extends BlockEntity {
         disc = d == null ? ItemStack.EMPTY : d.copy();
     }
 
+    public int getColor() {
+        return color;
+    }
+
+    public void setColor(int value) {
+        color =
+                com.eyecrasher.lazoboombox.data.BoomboxData.isValidColor(value)
+                        ? value
+                        : com.eyecrasher.lazoboombox.data.BoomboxData.UNPAINTED;
+    }
+
     public UUID getOwner() {
         return owner;
     }
@@ -51,12 +63,14 @@ public class BoomboxBlockEntity extends BlockEntity {
         super.saveAdditional(tag, registries);
         if (!disc.isEmpty()) tag.put("disc", disc.save(registries));
         if (owner != null) tag.putString("owner", owner.toString());
+        if (color != com.eyecrasher.lazoboombox.data.BoomboxData.UNPAINTED)
+            tag.putInt("color", color);
     }
 
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
-        this.disc = ItemStack.parse(registries, tag.getCompound("disc")).orElse(ItemStack.EMPTY);
+        this.disc = ItemStack.parseOptional(registries, tag.getCompound("disc"));
         String os = tag.getString("owner");
         if (os != null && !os.isEmpty()) {
             try {
@@ -69,6 +83,16 @@ public class BoomboxBlockEntity extends BlockEntity {
         }
         // Resync playback immediately after loading from NBT.
         // This is called when the chunk loads or Sable re-places the block entity.
+        setColor(tag.contains("color", 3) ? tag.getInt("color") : -1);
+        // A block-entity packet must invalidate the cached chunk tint as well.
+        if (level != null && level.isClientSide()) {
+            BlockState currentState = getBlockState();
+            level.sendBlockUpdated(
+                    getBlockPos(),
+                    currentState,
+                    currentState,
+                    net.minecraft.world.level.block.Block.UPDATE_CLIENTS);
+        }
         resyncPlayback();
     }
 
@@ -93,6 +117,10 @@ public class BoomboxBlockEntity extends BlockEntity {
 
     @Override
     public void setRemoved() {
+        // Level events can arrive just after the client removes this block entity.
+        if (level != null && level.isClientSide())
+            com.eyecrasher.lazoboombox.data.BoomboxParticlePaint.remember(
+                    level, getBlockPos().asLong(), color);
         if (level instanceof ServerLevel sl)
             BoomboxPlaybackManager.INSTANCE.stopPlaced(sl, getBlockPos(), "block-entity-removed");
         super.setRemoved();

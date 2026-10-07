@@ -23,6 +23,7 @@ import java.util.UUID;
 public class BoomboxBlockEntity extends BlockEntity {
     private ItemStack disc = ItemStack.EMPTY;
     private UUID owner;
+    private int color = com.eyecrasher.lazoboombox.data.BoomboxData.UNPAINTED;
 
     public BoomboxBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlocks.BOOMBOX_ENTITY.get(), pos, state);
@@ -40,6 +41,17 @@ public class BoomboxBlockEntity extends BlockEntity {
         disc = d == null ? ItemStack.EMPTY : d.copy();
     }
 
+    public int getColor() {
+        return color;
+    }
+
+    public void setColor(int value) {
+        color =
+                com.eyecrasher.lazoboombox.data.BoomboxData.isValidColor(value)
+                        ? value
+                        : com.eyecrasher.lazoboombox.data.BoomboxData.UNPAINTED;
+    }
+
     public UUID getOwner() {
         return owner;
     }
@@ -53,6 +65,8 @@ public class BoomboxBlockEntity extends BlockEntity {
         super.saveAdditional(output);
         if (!disc.isEmpty()) output.store("disc", ItemStack.CODEC, disc);
         if (owner != null) output.putString("owner", owner.toString());
+        if (color != com.eyecrasher.lazoboombox.data.BoomboxData.UNPAINTED)
+            output.putInt("color", color);
     }
 
     @Override
@@ -67,6 +81,16 @@ public class BoomboxBlockEntity extends BlockEntity {
                 owner = null;
             }
         else owner = null;
+        setColor(input.getIntOr("color", -1));
+        // A block-entity packet must invalidate the cached chunk tint as well.
+        if (level != null && level.isClientSide()) {
+            BlockState currentState = getBlockState();
+            level.sendBlockUpdated(
+                    getBlockPos(),
+                    currentState,
+                    currentState,
+                    net.minecraft.world.level.block.Block.UPDATE_CLIENTS);
+        }
     }
 
     @Override
@@ -94,6 +118,10 @@ public class BoomboxBlockEntity extends BlockEntity {
 
     @Override
     public void setRemoved() {
+        // Level events can arrive just after the client removes this block entity.
+        if (level != null && level.isClientSide())
+            com.eyecrasher.lazoboombox.data.BoomboxParticlePaint.remember(
+                    level, getBlockPos().asLong(), color);
         if (level instanceof ServerLevel sl)
             BoomboxPlaybackManager.INSTANCE.stopPlaced(sl, getBlockPos(), "block-entity-removed");
         super.setRemoved();

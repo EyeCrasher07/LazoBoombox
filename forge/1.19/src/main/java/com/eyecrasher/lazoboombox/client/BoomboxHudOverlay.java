@@ -1,0 +1,75 @@
+package com.eyecrasher.lazoboombox.client;
+
+import com.eyecrasher.lazoboombox.data.BoomboxData;
+import com.eyecrasher.lazoboombox.item.BoomboxItem;
+import com.mojang.blaze3d.vertex.PoseStack;
+
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.world.item.ItemStack;
+
+public final class BoomboxHudOverlay {
+    private record TimerState(boolean active, long positionMs, long durationMs) {}
+
+    private static volatile TimerState state = new TimerState(false, 0L, 0L);
+
+    private BoomboxHudOverlay() {}
+
+    public static void setState(boolean active, long positionMs, long durationMs) {
+        state = new TimerState(active, Math.max(0L, positionMs), Math.max(0L, durationMs));
+    }
+
+    public static void render(PoseStack graphics, float partialTick) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null || mc.font == null || mc.options.hideGui) return;
+        if (!BoomboxClientConfig.isTimerVisible()) return;
+        TimerState current = state;
+        ItemStack held = heldBoombox(mc);
+        if (held == null || !current.active()) return;
+        String timeText =
+                formatTime(current.positionMs()) + " / " + formatTime(current.durationMs());
+        int textWidth = mc.font.width(timeText);
+        int sw = mc.getWindow().getGuiScaledWidth(),
+                sh = mc.getWindow().getGuiScaledHeight(),
+                xo = BoomboxClientConfig.getXOffset(),
+                yo = BoomboxClientConfig.getYOffset();
+        int x, y;
+        BoomboxClientConfig.HudPosition pos = BoomboxClientConfig.getPosition();
+        switch (pos) {
+            case TOP_LEFT, CENTER_LEFT, BOTTOM_LEFT -> x = xo;
+            case TOP_CENTER, CENTER, BOTTOM_CENTER -> x = (sw - textWidth) / 2 + xo;
+            case TOP_RIGHT, CENTER_RIGHT, BOTTOM_RIGHT -> x = sw - textWidth - xo;
+            default -> x = sw - textWidth - xo;
+        }
+        switch (pos) {
+            case TOP_LEFT, TOP_CENTER, TOP_RIGHT -> y = yo;
+            case CENTER_LEFT, CENTER, CENTER_RIGHT -> y = (sh - mc.font.lineHeight) / 2 + yo;
+            case BOTTOM_LEFT, BOTTOM_CENTER, BOTTOM_RIGHT -> y = sh - mc.font.lineHeight - yo;
+            default -> y = yo;
+        }
+        GuiComponent.fill(
+                graphics,
+                x - 8,
+                y - 4,
+                x - 8 + textWidth + 16,
+                y - 4 + mc.font.lineHeight + 8,
+                0x80000000);
+        mc.font.draw(graphics, timeText, x, y, 0xFFFFFFFF);
+    }
+
+    private static String formatTime(long ms) {
+        if (ms < 0) ms = 0;
+        long s = ms / 1000L;
+        return String.format(java.util.Locale.ROOT, "%02d:%02d", s / 60L, s % 60L);
+    }
+
+    private static ItemStack heldBoombox(Minecraft mc) {
+        for (ItemStack stack :
+                new ItemStack[] {mc.player.getMainHandItem(), mc.player.getOffhandItem()}) {
+            if (!(stack.getItem() instanceof BoomboxItem) || !BoomboxData.hasDisc(stack)) continue;
+            ItemStack disc = BoomboxData.readDisc(stack, mc.player.level.registryAccess());
+            if (com.eyecrasher.lazodiscs.data.DiscDataUtil.read(disc).isPresent()) return stack;
+        }
+        return null;
+    }
+}

@@ -23,6 +23,7 @@ public final class LazoBoombox implements ModInitializer {
         BoomboxConfig.load();
         BoomboxNetworking.registerServer();
         ModBlocks.initialize();
+        com.eyecrasher.lazoboombox.recipe.ModRecipes.initialize();
         ModItems.initialize();
         ModCreativeTabs.initialize();
         BoomboxEvents.register();

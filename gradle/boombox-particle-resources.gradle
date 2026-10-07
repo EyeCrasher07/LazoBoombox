@@ -1,0 +1,24 @@
+// A flat white sprite takes the same RGB tint as the casing without showing its UV artwork.
+def particleResources = layout.buildDirectory.dir('generated/boombox-particle-resources')
+def generateBoomboxParticle = tasks.register('generateBoomboxParticle') {
+    inputs.property('spriteSize', 16)
+    inputs.property('spriteArgb', 'FFFFFFFF')
+    outputs.dir(particleResources)
+    doLast {
+        def destination = new File(particleResources.get().asFile,
+                'assets/lazoboombox/textures/block/boombox_particle.png')
+        destination.parentFile.mkdirs()
+        def image = new java.awt.image.BufferedImage(16, 16, java.awt.image.BufferedImage.TYPE_INT_ARGB)
+        for (int y = 0; y < 16; y++) {
+            for (int x = 0; x < 16; x++) {
+                image.setRGB(x, y, java.awt.Color.WHITE.getRGB())
+            }
+        }
+        if (!javax.imageio.ImageIO.write(image, 'png', destination)) {
+            throw new GradleException('Cannot encode the Boombox particle sprite')
+        }
+    }
+}
+sourceSets.main.resources.srcDir(particleResources)
+tasks.named('processResources').configure { dependsOn(generateBoomboxParticle) }
+tasks.matching { it.name == 'sourcesJar' }.configureEach { dependsOn(generateBoomboxParticle) }

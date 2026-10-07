@@ -41,12 +41,15 @@ import java.util.UUID;
 public class BoomboxBlock extends BaseEntityBlock {
     public static final MapCodec<BoomboxBlock> CODEC = simpleCodec(BoomboxBlock::new);
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
-    protected static final VoxelShape SHAPE_NORTH = Block.box(0, 0, 5, 16, 10, 11);
-    protected static final VoxelShape SHAPE_EAST = Block.box(5, 0, 0, 11, 10, 16);
+    // Relative quarter-turn steps preserve old saves: a missing rotation defaults to zero.
+    public static final net.minecraft.world.level.block.state.properties.IntegerProperty ROTATION =
+            net.minecraft.world.level.block.state.properties.IntegerProperty.create(
+                    "rotation", 0, 3);
 
     public BoomboxBlock(BlockBehaviour.Properties properties) {
         super(properties);
-        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
+        registerDefaultState(
+                stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(ROTATION, 0));
     }
 
     @Override
@@ -56,13 +59,14 @@ public class BoomboxBlock extends BaseEntityBlock {
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING);
+        builder.add(FACING, ROTATION);
     }
 
     @Override
     public BlockState getStateForPlacement(
             net.minecraft.world.item.context.BlockPlaceContext context) {
-        return defaultBlockState().setValue(FACING, context.getHorizontalDirection());
+        return BoomboxOrientation.withStep(
+                defaultBlockState(), BoomboxOrientation.stepForYaw(context.getRotation()));
     }
 
     @Override
@@ -73,21 +77,25 @@ public class BoomboxBlock extends BaseEntityBlock {
     @Override
     public VoxelShape getShape(
             BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return shapeForFacing(state.getValue(FACING));
+        return BoomboxOrientation.outline(state);
     }
 
     @Override
     public VoxelShape getCollisionShape(
             BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return shapeForFacing(state.getValue(FACING));
+        return BoomboxOrientation.shape(state);
     }
 
-    private static VoxelShape shapeForFacing(Direction facing) {
-        return switch (facing) {
-            case NORTH, SOUTH -> SHAPE_NORTH;
-            case EAST, WEST -> SHAPE_EAST;
-            default -> SHAPE_NORTH;
-        };
+    @Override
+    public BlockState rotate(BlockState state, net.minecraft.world.level.block.Rotation rotation) {
+        return BoomboxOrientation.withStep(
+                state, rotation.rotate(BoomboxOrientation.step(state), 16));
+    }
+
+    @Override
+    public BlockState mirror(BlockState state, net.minecraft.world.level.block.Mirror mirror) {
+        int yawStep = (BoomboxOrientation.step(state) + 8) & 15;
+        return BoomboxOrientation.withStep(state, (mirror.mirror(yawStep, 16) + 8) & 15);
     }
 
     @Override
@@ -103,12 +111,26 @@ public class BoomboxBlock extends BaseEntityBlock {
     }
 
     @Override
+    public ItemStack getCloneItemStack(
+            net.minecraft.world.level.LevelReader level,
+            BlockPos pos,
+            BlockState state,
+            boolean includeData) {
+        ItemStack stack = super.getCloneItemStack(level, pos, state, includeData);
+        net.minecraft.world.level.block.entity.BlockEntity entity = level.getBlockEntity(pos);
+        if (entity instanceof BoomboxBlockEntity boombox && !stack.isEmpty())
+            BoomboxData.writeColor(stack, boombox.getColor());
+        return stack;
+    }
+
+    @Override
     public void setPlacedBy(
             Level level, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
         super.setPlacedBy(level, pos, state, placer, stack);
         if (!level.isClientSide() && placer instanceof Player player) {
             BoomboxBlockEntity be = getEntity(level, pos);
             if (be != null) {
+                be.setColor(BoomboxData.readColor(stack));
                 be.setOwner(
                         BoomboxData.readOwner(stack)
                                 .orElse(
@@ -126,6 +148,7 @@ public class BoomboxBlock extends BaseEntityBlock {
                     }
                 }
                 be.setChanged();
+                level.sendBlockUpdated(pos, state, state, Block.UPDATE_CLIENTS);
             }
         }
     }
@@ -264,6 +287,7 @@ public class BoomboxBlock extends BaseEntityBlock {
         ItemStack boombox = new ItemStack(ModBlocks.BOOMBOX_ITEM.get());
         if (be.hasDisc()) BoomboxData.writeDisc(boombox, be.getDisc(), level.registryAccess());
         if (be.getOwner() != null) BoomboxData.writeOwner(boombox, be.getOwner());
+        BoomboxData.writeColor(boombox, be.getColor());
         BoomboxPlaybackManager.INSTANCE.stopPlaced(level, pos, "picked-up");
         level.removeBlock(pos, false);
         giveToPlayer(player, boombox);

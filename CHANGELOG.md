@@ -1,7 +1,29 @@
 # LazoBoombox Changelog
 
+## [0.1.3] - 2026-10-07
 
-## [0.1.2] - Unreleased
+### Added
+
+- Added the ability to dye a Boombox using dyes in a crafting table. Use 1–8 dyes in any arrangement.
+- Colors can be mixed and a painted Boombox can be dyed again, just like leather armor. Adding white dye gradually lightens the color.
+- The casing, handle and cassette panel are painted together.
+- A Boombox can be placed in 16 directions, in steps of 22.5°.
+- Paint is kept when picking up or breaking the Boombox, reloading a world, and copying it with middle-click or Ctrl+middle-click in creative mode.
+- Dyeing keeps the inserted disc and the Boombox's other saved data.
+- Added Forge support and builds for more Minecraft versions, starting at 1.16.5, following stable Plasmo Voice 2.1.17 support. There are 52 builds: 25 Fabric, 15 Forge and 12 NeoForge.
+
+### Fixed
+
+- Loading an empty Boombox no longer reports an invalid-disc error on Fabric and NeoForge 1.21.1 and 1.21.4.
+
+### Changed
+
+- Breaking particles are plain and match the Boombox paint color, instead of stone or pieces of the full texture.
+- Release builds now follow the Minecraft versions supported by stable Plasmo Voice 2.1.17. Versions supported only by old or beta Plasmo Voice releases are not included.
+
+Requires LazoDiscs and Plasmo Voice on the server and clients. Fabric builds also require Fabric API.
+
+## [0.1.2] - 2026-10-05
 
 ### Fixed
 

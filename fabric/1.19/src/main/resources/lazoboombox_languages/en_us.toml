@@ -1,0 +1,39 @@
+# LazoBoombox server messages
+# Placeholders use %name%, for example %title% or %reason%.
+
+source_line.boombox = "Boombox"
+now_playing = "Now playing: %title%"
+common.unknown = "Unknown"
+
+command.players_only = "Only players can use this command."
+command.url_usage = "Usage: /boombox url <url> [title]"
+command.url_set = "Boombox URL set: %title%"
+command.url_failed = "Could not set boombox URL: %reason%"
+command.range_usage = "Usage: /boombox range <1-128>"
+command.range_set = "Range set to %range%."
+command.volume_usage = "Usage: /boombox volume <0.0-4.0>"
+command.volume_set = "Volume set to %volume%."
+command.resolving_track = "Resolving track..."
+
+dependency.plasmo_voice_required = "Plasmo Voice is required to play boombox audio."
+
+permission.no_permission = "You do not have permission to use this boombox."
+
+invalid_url = "Invalid URL: %reason%"
+url.empty = "URL is empty"
+url.invalid = "Invalid URL"
+url.http_disabled = "HTTP URLs are disabled"
+url.https_disabled = "HTTPS URLs are disabled"
+url.unsupported_scheme = "Only HTTP/HTTPS URLs or spotify: URIs are supported"
+url.domain_not_allowed = "Domain is not allowed by config"
+
+spotify.track_only = "Only Spotify track links are supported for LazoBoombox."
+spotify.invalid_track = "Invalid Spotify track link"
+spotify.disabled = "Spotify search is disabled in config"
+spotify.metadata_failed = "Could not read Spotify track metadata"
+
+audio.no_matches = "No matching audio was found"
+audio.resolve_timed_out = "Audio resolve timed out after %seconds% seconds"
+audio.no_frames = "No audio frames were received from LavaPlayer for 15 seconds"
+audio.track_too_long = "Track is too long. Max: %max%"
+audio.load_failed = "%reason%"

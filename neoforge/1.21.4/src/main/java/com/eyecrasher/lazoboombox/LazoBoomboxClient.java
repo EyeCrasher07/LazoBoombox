@@ -12,6 +12,7 @@ import net.neoforged.neoforge.common.NeoForge;
 public final class LazoBoomboxClient {
     public LazoBoomboxClient(IEventBus modBus) {
         BoomboxClientConfig.load();
+        com.eyecrasher.lazoboombox.client.BoomboxColors.register(modBus);
         NeoForge.EVENT_BUS.addListener(BoomboxHudOverlay::onRender);
         NeoForge.EVENT_BUS.addListener(
                 (net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent.LoggingOut event) ->

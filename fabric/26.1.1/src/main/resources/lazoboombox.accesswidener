@@ -1,0 +1,4 @@
+accessWidener v1 official
+
+# The loader exposes this client-only registry before client initialization.
+accessible field net/minecraft/client/color/item/ItemTintSources ID_MAPPER Lnet/minecraft/util/ExtraCodecs$LateBoundIdMapper;

@@ -27,6 +27,7 @@ public final class LazoBoombox {
         BoomboxConfig.load();
         BoomboxNetworking.registerServer(modBus);
         ModBlocks.register(modBus);
+        com.eyecrasher.lazoboombox.recipe.ModRecipes.register(modBus);
         ModItems.initialize();
         ModCreativeTabs.initialize(modBus);
         NeoForge.EVENT_BUS.register(BoomboxEvents.class);

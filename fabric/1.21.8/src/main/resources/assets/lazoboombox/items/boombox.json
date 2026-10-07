@@ -1,1 +1,11 @@
-{ "model": { "type": "minecraft:model", "model": "lazoboombox:item/boombox" } }
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "lazoboombox:item/boombox",
+    "tints": [
+      {
+        "type": "lazoboombox:boombox_color"
+      }
+    ]
+  }
+}

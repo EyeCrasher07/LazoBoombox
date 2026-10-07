@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.eyecrasher.lazoboombox.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "BoomboxHudMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

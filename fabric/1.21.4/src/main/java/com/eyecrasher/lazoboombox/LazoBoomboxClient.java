@@ -11,6 +11,7 @@ public final class LazoBoomboxClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         BoomboxClientConfig.load();
+        com.eyecrasher.lazoboombox.client.BoomboxColors.initialize();
         BoomboxNetworking.registerClient();
         net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.DISCONNECT.register(
                 (handler, client) -> BoomboxHudOverlay.setState(false, 0L, 0L));

@@ -18,6 +18,39 @@ public final class BoomboxData {
     public static final String ROOT_KEY = "lazoboombox_boombox";
     private static final String DISC_KEY = "disc", OWNER_KEY = "owner";
 
+    public static final int UNPAINTED = -1;
+    private static final String COLOR_KEY = "color";
+
+    public static boolean isValidColor(int color) {
+        return color >= 0 && color <= 0xFFFFFF;
+    }
+
+    /** Missing or malformed color leaves existing boomboxes visually unchanged. */
+    public static int readColor(ItemStack b) {
+        if (b.isEmpty()) return UNPAINTED;
+        CustomData d = b.get(DataComponents.CUSTOM_DATA);
+        if (d == null) return UNPAINTED;
+        CompoundTag root = d.copyTag();
+        CompoundTag tag = root.getCompound(ROOT_KEY);
+        int color = tag.contains(COLOR_KEY, 3) ? tag.getInt(COLOR_KEY) : UNPAINTED;
+        return isValidColor(color) ? color : UNPAINTED;
+    }
+
+    /** Copy-on-write preserves the disc, owner, and all unrelated item metadata. */
+    public static void writeColor(ItemStack b, int color) {
+        if (b.isEmpty()) return;
+        if (color != UNPAINTED && !isValidColor(color))
+            throw new IllegalArgumentException("Color must be a 24-bit RGB value or UNPAINTED");
+        CompoundTag root = b.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        CompoundTag tag = root.getCompound(ROOT_KEY);
+        if (color == UNPAINTED) tag.remove(COLOR_KEY);
+        else tag.putInt(COLOR_KEY, color);
+        if (tag.isEmpty()) root.remove(ROOT_KEY);
+        else root.put(ROOT_KEY, tag);
+        if (root.isEmpty()) b.remove(DataComponents.CUSTOM_DATA);
+        else b.set(DataComponents.CUSTOM_DATA, CustomData.of(root));
+    }
+
     private BoomboxData() {}
 
     private static RegistryOps<Tag> ops(HolderLookup.Provider r) {
