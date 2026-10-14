@@ -1,5 +1,13 @@
 # LazoBoombox Changelog
 
+## [0.1.4] - 2026-10-14
+
+### Fixed
+
+- Fix world entry and recipe synchronization on Fabric and NeoForge 26.1–26.3. The dye recipe now uses the same stateless instance for JSON loading and network encoding.
+
+Use with the matching LazoDiscs and Plasmo Voice builds. LazoDiscs 1.0.7 fixes SoundCloud AAC streams and saves the selected audio URL when recording Spotify tracks.
+
 ## [0.1.3] - 2026-10-07
 
 ### Added

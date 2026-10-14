@@ -8,10 +8,12 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 
 public final class ModRecipes {
+    // Both codecs must use the same stateless recipe instance.
+    private static final BoomboxDyeRecipe DYE_RECIPE = new BoomboxDyeRecipe();
     public static final RecipeSerializer<BoomboxDyeRecipe> DYE =
             new RecipeSerializer<>(
-                    com.mojang.serialization.MapCodec.unit(BoomboxDyeRecipe::new),
-                    net.minecraft.network.codec.StreamCodec.unit(new BoomboxDyeRecipe()));
+                    com.mojang.serialization.MapCodec.unit(DYE_RECIPE),
+                    net.minecraft.network.codec.StreamCodec.unit(DYE_RECIPE));
 
     private ModRecipes() {}
 

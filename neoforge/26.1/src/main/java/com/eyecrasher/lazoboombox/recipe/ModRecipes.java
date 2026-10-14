@@ -15,11 +15,13 @@ public final class ModRecipes {
     public static final Supplier<RecipeSerializer<BoomboxDyeRecipe>> DYE =
             SERIALIZERS.register(
                     "boombox_dye",
-                    () ->
-                            new RecipeSerializer<>(
-                                    com.mojang.serialization.MapCodec.unit(BoomboxDyeRecipe::new),
-                                    net.minecraft.network.codec.StreamCodec.unit(
-                                            new BoomboxDyeRecipe())));
+                    () -> {
+                        // Both codecs must use the same stateless recipe instance.
+                        BoomboxDyeRecipe recipe = new BoomboxDyeRecipe();
+                        return new RecipeSerializer<>(
+                                com.mojang.serialization.MapCodec.unit(recipe),
+                                net.minecraft.network.codec.StreamCodec.unit(recipe));
+                    });
 
     private ModRecipes() {}
 

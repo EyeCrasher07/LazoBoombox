@@ -13,7 +13,7 @@ import java.io.InputStream;
 @Addon(
         id = "lazoboombox",
         name = "LazoBoombox",
-        version = "0.1.3+26.1.1",
+        version = "0.1.4+26.1.1",
         authors = {"EyeCrasher"})
 public final class LazoBoomboxVoiceAddon implements AddonInitializer {
     @InjectPlasmoVoice private PlasmoVoiceServer voiceServer;

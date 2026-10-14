@@ -49,7 +49,7 @@ Experimental playback on Sable / Create Aeronautics moving platforms can be enab
 
 ## Supported builds
 
-LazoBoombox **0.1.3** provides the following builds, based on the stable Plasmo Voice **2.1.17** compatibility list. Download the file for your exact Minecraft version and loader, together with the matching LazoDiscs build.
+LazoBoombox **0.1.4** provides the following builds, based on the stable Plasmo Voice **2.1.17** compatibility list. Download the file for your exact Minecraft version and loader, together with the matching LazoDiscs build.
 
 | Minecraft | Fabric | Forge | NeoForge |
 | --- | :---: | :---: | :---: |
@@ -113,7 +113,7 @@ LazoBoombox **0.1.3** provides the following builds, based on the stable Plasmo 
 
 ### Поддерживаемые сборки
 
-В LazoBoombox **0.1.3** доступны следующие сборки по списку совместимости стабильного Plasmo Voice **2.1.17**. Выбирай файл для своей точной версии Minecraft и загрузчика вместе с подходящей сборкой LazoDiscs.
+В LazoBoombox **0.1.4** доступны следующие сборки по списку совместимости стабильного Plasmo Voice **2.1.17**. Выбирай файл для своей точной версии Minecraft и загрузчика вместе с подходящей сборкой LazoDiscs.
 
 | Minecraft | Fabric | Forge | NeoForge |
 | --- | :---: | :---: | :---: |
